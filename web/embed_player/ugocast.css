@@ -1,0 +1,285 @@
+/* ugocast.css */
+
+:root {
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --primary-color: var(--color1);
+  --primary-glow: var(--color2);
+  --preview-aspect-ratio: 1.77777778; /* 16:9 */
+  --control-bar-height: 48px;
+}
+
+/* プレイヤーコンテナ: 幅100%でレスポンシブに */
+.ugocast-container {
+  width: 100%;
+  max-width: 1200px; /* 最大幅は任意に調整 */
+  margin: 0 auto;
+  position: relative;
+  background-color: #000;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+/* プレビュー表示領域 (16:9比率維持) */
+.ugocast-wrapper {
+  width: 100%;
+  aspect-ratio: var(--preview-aspect-ratio);
+  position: relative;
+  overflow: hidden;
+  background-color: #111;
+  cursor: pointer; /* クリックで再生/一時停止できるようにする */
+}
+
+/* 背景画像レイヤー */
+.ugocast-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  transition: background-image 0.8s ease-in-out;
+  z-index: 1;
+}
+
+/* スライド表示レイヤー */
+.slide-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  z-index: 2;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0,0,0, 0.88);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 0.3s ease;
+}
+
+/* アバター表示領域 (%でレスポンシブサイズに調整) */
+.avatar-container {
+  position: absolute;
+  bottom: 0;
+  right: 5%;
+  width: 25%;  /* 横幅に対する割合でキャラサイズを決定 */
+  height: 60%; /* 高さの割合 */
+  z-index: 5;
+  pointer-events: none;
+}
+
+.avatar-part {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom;
+}
+
+.avatar-part.base {
+  z-index: 6;
+}
+
+.avatar-part.blink {
+  z-index: 7;
+  opacity: 0;
+  transition: opacity 0.04s ease;
+}
+
+.avatar-part.mouth {
+  z-index: 8;
+  opacity: 0;
+  transition: opacity 0.04s ease;
+}
+
+/* 字幕レイヤー */
+.subtitle-overlay {
+  position: absolute;
+  bottom: 8%;
+  left: 5%;
+  width: 60%; /* アバターと被らないように幅を制限 */
+  z-index: 10;
+  pointer-events: none;
+}
+
+.subtitle-text {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 3% 4%;
+  color: white;
+  font-size: clamp(0.9rem, 2vw, 1.3rem); /* 画面サイズに応じてフォントサイズ変更 */
+  font-weight: 500;
+  line-height: 1.4;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  display: none; /* テキストがない時は非表示 */
+}
+
+/* オーバーレイ再生ボタン (YouTube風) */
+.overlay-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 68px;
+  height: 48px;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  opacity: 1;
+}
+
+.ugocast-wrapper:hover .overlay-play-btn:not(.hidden) {
+  background-color: var(--primary-color);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.overlay-play-btn.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.play-icon {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 10px 0 10px 18px;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 4px; /* 再生アイコンの視覚的な中央寄せ */
+}
+
+/* プレイヤー下部コントロールバー */
+.control-bar {
+  width: 100%;
+  height: var(--control-bar-height);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  z-index: 30;
+}
+
+.control-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  min-width: 32px;
+  transition: color 0.2s;
+}
+
+.control-btn:hover {
+  color: var(--primary-color);
+}
+
+.control-btn:disabled {
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* 時間表示 */
+.time-display {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* プログレスバー (シークバー) */
+.custom-progress {
+  flex: 1;
+  height: 4px;
+  accent-color: var(--primary-color);
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.custom-progress::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.custom-progress::-webkit-slider-thumb:hover {
+  transform: scale(1.3);
+}
+
+.custom-progress:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 音量コントロール */
+.volume-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100px;
+}
+
+.volume-bar {
+  width: 100%;
+}
+
+/* スマートフォン対応（幅が狭い場合） */
+@media (max-width: 600px) {
+  .control-bar {
+    padding: 0 8px;
+    gap: 8px;
+  }
+
+  .time-display {
+    font-size: 0.75rem;
+    min-width: 65px;
+  }
+
+  .volume-container {
+    width: 60px;
+  }
+
+  .subtitle-overlay {
+    width: 80%; /* スマホでは字幕幅を広げる */
+  }
+
+  .overlay-play-btn {
+    width: 50px;
+    height: 36px;
+  }
+}

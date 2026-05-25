@@ -1,0 +1,66 @@
+<section>
+<h2>うごキャス(動くポッドキャスト)で内容を視聴</h2>
+  <link rel="stylesheet" href="ugocast.css">
+  <!-- 埋め込み用プレイヤーのメインコンテナ -->
+  <div class="ugocast-container" id="ugocastContainer">
+    
+    <!-- 16:9のアスペクト比を維持するラッパー -->
+    <div class="ugocast-wrapper">
+      
+      <!-- 背景画像 -->
+      <div id="previewBg" class="ugocast-bg"></div>
+      
+      <!-- スライド表示領域 -->
+      <div class="slide-wrapper">
+        <img id="slideImage" src="" class="slide-image" alt="Slide" style="display: none;">
+      </div>
+
+      <!-- アバター表示領域 (レスポンシブ対応) -->
+      <div class="avatar-container" id="avatarContainer">
+        <img id="avatarBase" src="" class="avatar-part base" alt="Avatar Base">
+        <img id="avatarBlink" src="" class="avatar-part blink" alt="Avatar Blink">
+        <img id="avatarMouth" src="" class="avatar-part mouth" alt="Avatar Mouth">
+      </div>
+
+      <!-- 字幕領域 -->
+      <div class="subtitle-overlay">
+        <div id="subtitleText" class="subtitle-text"></div>
+      </div>
+
+      <!-- オーバーレイ再生ボタン (YouTube風) -->
+      <div class="overlay-play-btn" id="overlayPlayBtn">
+        <div class="play-icon"></div>
+      </div>
+
+    </div>
+
+    <!-- プレイヤー下部コントロールバー -->
+    <div class="control-bar" id="controlBar">
+      
+      <button id="playBtn" class="control-btn play-btn" disabled>
+        <span class="icon-play">▶</span>
+        <span class="icon-pause" style="display:none;">⏸</span>
+      </button>
+
+      <div class="time-display">
+        <span id="timeDisplay">0:00</span> / <span id="totalTimeDisplay">0:00</span>
+      </div>
+
+      <input type="range" id="progressBar" class="custom-progress" min="0" max="100" value="0" step="0.1" disabled>
+      
+      <div class="volume-container">
+        <button id="muteBtn" class="control-btn mute-btn">
+          <span class="icon-volume">♪</span>
+          <span class="icon-muted" style="display:none;">♩</span>
+        </button>
+        <input type="range" id="volumeBar" class="custom-progress volume-bar" min="0" max="1" value="1" step="0.05">
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Audio Element -->
+  <audio id="ugcAudio" style="display: none;"></audio>
+</section>
+<script src="ugocast.js" defer></script>
