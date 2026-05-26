@@ -1,20 +1,43 @@
 // ugocast.js
 // --- DOM 要素 ---
 let elements = {};
-document.addEventListener('DOMContentLoaded', async () => {
+const startUgocast = async () => {
   // 1. HTMLテンプレートをfetch
   if (typeof ugocast_html_url !== 'undefined' && ugocast_html_url) {
-    const res  = await fetch(ugocast_html_url);
-    const html = await res.text();
+    try {
+      const res  = await fetch(ugocast_html_url);
+      if (res.ok) {
+        const html = await res.text();
 
-    // 2. マウント先にDOMを挿入
-    const mount = document.getElementById('ugocast-mount');
-    if (mount) mount.innerHTML = html;
+        // 2. マウント先にDOMを挿入 (IDタイポの両方に対応: ugocast-mount / ugocas-mount)
+        const mount = document.getElementById('ugocast-mount') || document.getElementById('ugocas-mount');
+        if (mount) {
+          mount.innerHTML = html;
+        } else {
+          console.error("うごキャスエラー: id='ugocast-mount' または id='ugocas-mount' のマウント要素が見つかりません。");
+          return;
+        }
+      } else {
+        console.error("うごキャスエラー: 埋め込みプレイヤーテンプレートの取得に失敗しました。Status:", res.status);
+        return;
+      }
+    } catch (err) {
+      console.error("うごキャスエラー: テンプレートHTMLの読み込み中にエラーが発生しました:", err);
+      return;
+    }
   }
 
-  // 3. DOM確定後にinit()を呼ぶ（elementsの取得はinit内のまま）
+  // 3. DOM確定後にinit()を呼ぶ
   init();
-});
+};
+
+// 実行処理: すでにDOMロード完了（非同期インジェクション等）している場合は即時実行、ロード中の場合はDOMContentLoadedイベントを待つ
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startUgocast);
+} else {
+  startUgocast();
+}
+
 // --- Utils ---
 function formatTime(seconds) {
   if (!seconds || isNaN(seconds) || seconds === Infinity) return "0:00";
@@ -32,6 +55,7 @@ const state = {
   blinkTimeoutId: null,
 
   lastAvatarState: 'mouth_close',
+  lastExpressionState: 'default',
   lastSlideSrc: '',
   lastSubtitleText: '',
 
@@ -79,6 +103,12 @@ async function init() {
     // 音声要素
     ugcAudio: document.getElementById('ugcAudio')
   };
+
+  // 必須要素が存在するかチェック
+  if (!elements.playBtn || !elements.ugcAudio) {
+    console.warn("うごキャス警告: 必要なHTML要素（playBtn等）が見つからないため、初期化をスキップします。#ugocast-mount マウント要素やテンプレートHTMLが正しく読み込まれているか確認してください。");
+    return;
+  }
 
   setupEventListeners();
   startAutonomousBlinking();
@@ -136,10 +166,10 @@ function initializePlayback() {
   const char = meta.character || 'c1';
 
   // アセットのベースパス解決
-  const basePath = '/images/ugocast/';
+  const basePath = '/contents/images-base/ugocast/';
 
   elements.avatarBase.src = `${basePath}characters/${char}_base.webp`;
-  elements.avatarBlink.src = `${basePath}characters/${char}_blink.webp`;
+  elements.avatarBlink.src = `${basePath}characters/${char}_eye.webp`;
   elements.avatarMouth.src = `${basePath}characters/${char}_mouth.webp`;
 
   const bg = meta.bgImage || 'background1.webp';
@@ -277,26 +307,48 @@ function syncTimeline(currentTime) {
     elements.subtitleText.style.display = 'none';
   }
 
-  // 3. アバター表情（口パク）
-  const activeAvatar = getActiveEvent(timeline.avatar, currentTime);
-  if (activeAvatar) {
-    const newState = activeAvatar.state;
-    if (newState === 'mouth_open') {
-      if (state.lastAvatarState !== 'mouth_open') {
-        state.lastAvatarState = 'mouth_open';
-        elements.avatarMouth.style.opacity = 1;
-      }
-      state.mouthHoldTimer = state.mouthHoldDuration;
-    } else {
-      if (state.mouthHoldTimer <= 0 && state.lastAvatarState !== 'mouth_close') {
-        state.lastAvatarState = 'mouth_close';
-        elements.avatarMouth.style.opacity = 0;
+  // 3. アバター表情（口パク ＆ 表情ステータス）の同期
+  // 口パク状態と表情状態はそれぞれ直近のイベントを個別に適用する
+  let activeMouthState = 'mouth_close';
+  let activeExpressionState = 'default';
+
+  if (timeline.avatar) {
+    for (const ev of timeline.avatar) {
+      if (ev.time <= currentTime) {
+        if (ev.state === 'mouth_open' || ev.state === 'mouth_close') {
+          activeMouthState = ev.state;
+        } else if (['default', 'angry', 'sad', 'funny'].includes(ev.state)) {
+          activeExpressionState = ev.state;
+        }
+      } else {
+        break; // 時間順なので先は無視
       }
     }
+  }
+
+  // 口パクの適用
+  if (activeMouthState === 'mouth_open') {
+    if (state.lastAvatarState !== 'mouth_open') {
+      state.lastAvatarState = 'mouth_open';
+      elements.avatarMouth.style.opacity = 1;
+    }
+    state.mouthHoldTimer = state.mouthHoldDuration;
   } else {
-    if (state.mouthHoldTimer <= 0) {
-      elements.avatarMouth.style.opacity = 0;
+    if (state.mouthHoldTimer <= 0 && state.lastAvatarState !== 'mouth_close') {
       state.lastAvatarState = 'mouth_close';
+      elements.avatarMouth.style.opacity = 0;
+    }
+  }
+
+  // 表情の適用
+  if (activeExpressionState !== state.lastExpressionState) {
+    state.lastExpressionState = activeExpressionState;
+    const char = (state.timelineData.metadata && state.timelineData.metadata.character) || 'c1';
+    const basePath = '/contents/images-base/ugocast/';
+    if (activeExpressionState === 'default') {
+      elements.avatarBase.src = `${basePath}characters/${char}_base.webp`;
+    } else {
+      elements.avatarBase.src = `${basePath}characters/${char}_base_${activeExpressionState}.webp`;
     }
   }
 }
@@ -377,6 +429,12 @@ function stopPlayback() {
 
   // リセット
   state.lastAvatarState = 'mouth_close';
+  state.lastExpressionState = 'default';
   elements.avatarMouth.style.opacity = 0;
+
+  const char = (state.timelineData && state.timelineData.metadata && state.timelineData.metadata.character) || 'c1';
+  const basePath = '/contents/images-base/ugocast/';
+  elements.avatarBase.src = `${basePath}characters/${char}_base.webp`;
+
   syncTimeline(0);
 }
