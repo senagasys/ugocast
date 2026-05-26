@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>うごキャス (UgoCast) Creator - Version 3.0</title>
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/css/ugc_record.css">
+  <!-- Tone.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- サイドメニュー (コントロールパネル) -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo-icon"></div>
+        <h1>うごキャス v3</h1>
+      </div>
+
+      <div class="status-card">
+        <span class="status-label">Status:</span>
+        <span id="statusIndicator" class="status-indicator">Ready</span>
+        <div class="rms-meter-container">
+          <div class="rms-label">Audio Level</div>
+          <div class="rms-bar-bg">
+            <div id="rmsBar" class="rms-bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- アバター設定グループ -->
+      <div class="control-group">
+        <h3><span class="step-num">1</span> Character Selection</h3>
+        <div class="toggle-container">
+          <button id="charBtnC1" class="toggle-btn active" data-char="c1">Male (C1)</button>
+          <button id="charBtnC2" class="toggle-btn" data-char="c2">Female (C2)</button>
+        </div>
+
+        <!-- 女性ボイス設定 (C2選択時のみ表示される) -->
+        <div id="voiceSettingsContainer" class="voice-settings collapsible">
+          <label for="pitchSlider">Tone.js Female Voice Pitch</label>
+          <div class="slider-wrapper">
+            <input type="range" id="pitchSlider" min="2" max="8" value="5" step="0.5">
+            <span id="pitchVal" class="value-display">+5.0 semitones</span>
+          </div>
+          <p class="control-desc">Adjust the pitch shift for female character recording.</p>
+        </div>
+      </div>
+
+      <!-- 表情ステータス -->
+      <div class="control-group">
+        <h3>Expression Status</h3>
+        <div class="expression-status-display" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <span class="status-label" style="font-size: 0.85rem; opacity: 0.8;">Current Expression:</span>
+          <span id="expressionIndicator" class="expression-indicator" style="background: rgba(255, 255, 255, 0.1); padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; color: #fff; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Default</span>
+        </div>
+        <p class="control-desc" style="font-size: 0.75rem; line-height: 1.4; color: rgba(255,255,255,0.6); margin: 0;">
+          <strong>[A]</strong> Hold for Angry (怒る)<br>
+          <strong>[S]</strong> Hold for Sad (悲しい)<br>
+          <strong>[F]</strong> Hold for Funny (笑顔)<br>
+          Press <strong>[D]</strong> to reset to Default
+        </p>
+      </div>
+
+      <!-- 背景画像設定 -->
+      <div class="control-group">
+        <h3><span class="step-num">2</span> Background Theme</h3>
+        <div class="select-wrapper">
+          <select id="bgSelect">
+            <!-- 12枚の画像を追加 -->
+            <option value="background1.webp">Light Blue (BG 1)</option>
+            <option value="background2.webp">Light Gray (BG 2)</option>
+            <option value="background3.webp">Light Green (BG 3)</option>
+            <option value="background4.webp">Light Pink (BG 4)</option>
+            <option value="background5.webp">Light Purple (BG 5)</option>
+            <option value="background6.webp">Dark Aqua (BG 6)</option>
+            <option value="background7.webp">Dark Gray (BG 7)</option>
+            <option value="background8.webp">Dark Green (BG 8)</option>
+            <option value="background9.webp">Dark Pink (BG 9)</option>
+            <option value="background10.webp">Dark Gold (BG 10)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- スライドカルーセル -->
+      <div class="control-group">
+        <h3><span class="step-num">3</span> Slide Navigation</h3>
+        <div class="carousel-container">
+          <button id="prevSlideBatchBtn" class="carousel-nav-btn">&lt;</button>
+          <div class="carousel-track-wrapper">
+            <div id="carouselTrack" class="carousel-track">
+              <!-- JSで動的に構築されるスライドサムネイル -->
+            </div>
+          </div>
+          <button id="nextSlideBatchBtn" class="carousel-nav-btn">&gt;</button>
+        </div>
+        <p class="control-desc">Hover to preview slide. Click to apply and record transition.</p>
+      </div>
+
+      <!-- 録音・タイムラインコントロール -->
+      <div class="control-group record-controls">
+        <h3><span class="step-num">4</span> Record Podcast</h3>
+        <div class="time-display-container">
+          <span id="timeDisplay">00:00</span>
+          <span class="time-divider">/</span>
+          <span class="total-duration">30:00</span>
+        </div>
+
+        <input type="range" id="progressBar" class="custom-progress" min="0" max="1800" value="0" step="0.1" disabled>
+
+        <div class="action-buttons">
+          <button id="recordBtn" class="btn btn-record">● Start Recording</button>
+          <button id="saveBtn" class="btn btn-save" disabled>💾 Save Output</button>
+        </div>
+      </div>
+
+      <!-- イベントログ -->
+      <div class="control-group log-group">
+        <h3>JSON Timeline Event Log</h3>
+        <div class="log-wrapper">
+          <ul id="eventLogList" class="event-log-list">
+            <li class="log-empty-msg">No events recorded yet.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="player-link-container">
+        <a href="player.html" class="player-link">➡️ Go to Animation Player</a>
+      </div>
+    </aside>
+
+    <!-- プレビューエリア -->
+    <main class="preview-container">
+      <div class="preview-wrapper-ratio">
+        <!-- プレビュー本体 (16:9) -->
+        <section id="previewArea" class="preview-area">
+
+          <!-- 背景画像 (BGイメージ) -->
+          <div id="previewBg" class="preview-bg"></div>
+
+          <!-- プレゼンテーションスライド -->
+          <div class="slide-wrapper">
+            <img id="slideImage" src="assets/images/slide/image1.webp" class="slide-image" alt="Slide">
+          </div>
+
+          <!-- アバター表示領域 (重ね合わせ) -->
+          <div class="avatar-container" id="avatarContainer">
+            <!-- ベース (目開、口閉) -->
+            <img id="avatarBase" src="assets/images/character/c1_base.webp" class="avatar-part base" alt="Avatar Base">
+            <!-- 瞬き (閉じた目) -->
+            <img id="avatarBlink" src="assets/images/character/c1_eye.webp" class="avatar-part blink"
+              alt="Avatar Blink">
+            <!-- 口パク (開いた口) -->
+            <img id="avatarMouth" src="assets/images/character/c1_mouth.webp" class="avatar-part mouth"
+              alt="Avatar Mouth">
+          </div>
+
+          <!-- 字幕領域 -->
+          <div class="subtitle-overlay">
+            <div id="subtitleText" class="subtitle-text">Subtitles will appear here in real time...</div>
+          </div>
+
+          <!-- 無音検知インジケーター -->
+          <div id="silenceBadge" class="silence-badge">SILENT (PAUSED)</div>
+
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="assets/js/ugc_record.js" type="module"></script>
+</body>
+
+</html>

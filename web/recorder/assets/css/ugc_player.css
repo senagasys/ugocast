@@ -1,0 +1,461 @@
+/* ugc_player.css */
+
+:root {
+    --bg-app: #090d16;
+    --bg-sidebar: #111827;
+    --bg-card: rgba(31, 41, 55, 0.6);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --primary-color: #3b82f6;
+    --primary-glow: rgba(59, 130, 246, 0.3);
+    --accent-color: #a855f7;
+    --danger-color: #ef4444;
+    --success-color: #10b981;
+    --preview-aspect-ratio: 1.77777778;
+    /* 16:9 */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* アプリ全体レイアウト */
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* サイドバースタイル */
+.sidebar {
+    width: 420px;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    flex-shrink: 0;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #a855f7);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #3b82f6, #a855f7);
+    border-radius: 8px;
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+/* コントロールグループ共通 */
+.control-group {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.control-group h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+/* インポートドラッグドロップゾーン */
+.import-zone {
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+.import-zone:hover,
+.import-zone.dragover {
+    border-color: var(--primary-color);
+    background-color: rgba(59, 130, 246, 0.05);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+}
+
+.import-icon {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+}
+
+.import-zone p {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.import-sub {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
+/* 読み込み済みファイルステータス */
+.imported-files-status {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+}
+
+.file-status-row {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    gap: 8px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--danger-color);
+    transition: background-color 0.3s;
+}
+
+.status-dot.success {
+    background-color: var(--success-color);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.file-name-label {
+    color: var(--text-secondary);
+}
+
+.file-name-val {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+/* メタデータカード */
+.metadata-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.metadata-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+    padding-bottom: 6px;
+}
+
+.metadata-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.meta-label {
+    color: var(--text-secondary);
+}
+
+.meta-val {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* 再生コントロール */
+.player-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.time-display-container {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    margin-bottom: 4px;
+}
+
+#timeDisplay {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.time-divider {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 0 8px;
+}
+
+.total-duration {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* プログレスバー */
+.custom-progress {
+    width: 100%;
+    height: 6px;
+    accent-color: var(--primary-color);
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    border: none;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-play {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-play:hover {
+    background-color: #059669;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-play.playing {
+    background-color: #fbbf24;
+    color: #000;
+}
+
+.btn-stop {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-stop:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn:disabled {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    color: var(--text-secondary) !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+    border-color: transparent !important;
+}
+
+/* プレイヤーへのリンク */
+.player-link-container {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.player-link {
+    color: var(--primary-color);
+    font-size: 0.85rem;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.player-link:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+
+/* プレビューコンテナ */
+.preview-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+    position: relative;
+}
+
+.preview-wrapper-ratio {
+    width: 100%;
+    max-width: 1200px;
+    aspect-ratio: var(--preview-aspect-ratio);
+    background-color: #000;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* プレビュー本体 */
+.preview-area {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 背景画像レイヤー */
+.preview-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.8s ease-in-out;
+    z-index: 1;
+}
+
+/* スライド表示レイヤー */
+.slide-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    z-index: 2;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    background-color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.slide-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: opacity 0.3s ease;
+}
+
+/* アバター表示領域 */
+.avatar-container {
+    position: absolute;
+    bottom: 0;
+    right: 40px;
+    width: 320px;
+    height: 480px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* 16:9比率でのアバターパーツの重ね合わせ */
+.avatar-part {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.avatar-part.base {
+    z-index: 6;
+}
+
+.avatar-part.blink {
+    z-index: 7;
+    opacity: 0;
+    transition: opacity 0.04s ease;
+}
+
+.avatar-part.mouth {
+    z-index: 8;
+    opacity: 0;
+    transition: opacity 0.04s ease;
+}
+
+/* 字幕レイヤー */
+.subtitle-overlay {
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    right: 380px;
+    /* アバターと重ならないように調整 */
+    z-index: 10;
+    pointer-events: none;
+}
+
+.subtitle-text {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px 24px;
+    color: white;
+    font-size: 1.15rem;
+    font-weight: 500;
+    line-height: 1.5;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
